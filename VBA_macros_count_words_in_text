@@ -1,0 +1,28 @@
+Sub Частота_слов()          ' cyberforum.ru > KoGG > Sasha_Smirnov // https://www.cyberforum.ru/vba/thread1380990.html
+Const freq = 1              ' частота появления слова, больше которой оно учитывается
+Dim oWord As Range, dic As Object, vX As Variant, S$
+Dim t As String             ' переменная для текста очередного "слова" (oWord.Text)
+    Set dic = CreateObject("Scripting.Dictionary")
+            Application.ScreenUpdating = False
+With dic
+'        .CompareMode = 1   ' Отключение чувствительности к регистру в словаре. '[пока откл.]
+        For Each oWord In ActiveDocument.Range.Words
+            t = oWord.Text
+            If Not Right(t, 1) Like "[ " & Chr(10) & Chr(11) & Chr(13) & "]" Then t = t & " "
+                S = UCase(t)
+                    Select Case Asc(S)
+                    Case 48 To 57, 65 To 90, 168, 184, 192 To 223   ' цифры и ЗАГЛ. буквы
+                    .Item(t) = .Item(t) + 1
+                    End Select
+        Next
+    Documents.Add: ActiveWindow.ActivePane.View.Type = wdPrintView  ' вид "Разметка страницы"
+    For Each vX In .Keys
+        If .Item(vX) > freq Then Selection.TypeText RTrim(vX) & Chr(9) & .Item(vX) & Chr(13)
+    Next
+End With
+            With Selection: .Sort: .Collapse: .Delete: End With     ' Сортировка по алфавиту.
+    
+        ActiveDocument.PageSetup.TextColumns.SetCount NumColumns:=4 ' В 4 колонки.
+        ActiveDocument.PageSetup.TextColumns.LineBetween = True     ' Линии между колонок.
+        ActiveDocument.Paragraphs.TabStops.Add CentimetersToPoints(3.5), wdAlignTabRight
+End Sub
